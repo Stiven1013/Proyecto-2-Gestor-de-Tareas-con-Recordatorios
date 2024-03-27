@@ -1,0 +1,102 @@
+import datetime
+
+class Task:
+    def __init__(self, title, description, due_date=None):
+        self.title = title
+        self.description = description
+        self.due_date = due_date
+        self.completed = False
+
+    def mark_completed(self):
+        self.completed = True
+
+class TaskManager:
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(TaskManager, cls).__new__(cls)
+            cls._instance.tasks = []
+        return cls._instance
+
+    def add_task(self, task):
+        self.tasks.append(task)
+
+    def get_pending_tasks(self):
+        return [task for task in self.tasks if not task.completed]
+
+    def get_completed_tasks(self):
+        return [task for task in self.tasks if task.completed]
+
+    def check_due_tasks(self, threshold_days=1):
+        today = datetime.date.today()
+        due_tasks = [task for task in self.tasks
+                     if task.due_date is not None and
+                     (task.due_date - today).days <= threshold_days]
+        return due_tasks
+
+def main():
+    task_manager = TaskManager()
+
+    while True:
+        print("\nGestor de Tareas con Recordatorios")
+        print("1. Agregar nueva tarea")
+        print("2. Marcar tarea como completada")
+        print("3. Ver tareas pendientes")
+        print("4. Ver tareas completadas")
+        print("5. Ver tareas próximas al vencimiento")
+        print("6. Salir")
+
+        choice = input("Seleccione una opción: ")
+
+        if choice == "1":
+            title = input("Ingrese el título de la tarea: ")
+            description = input("Ingrese la descripción de la tarea: ")
+            due_date_str = input("Ingrese la fecha de vencimiento (YYYY-MM-DD), dejar en blanco si no hay fecha de vencimiento: ")
+            if due_date_str:
+                due_date = datetime.datetime.strptime(due_date_str, '%Y-%m-%d').date()
+                new_task = Task(title, description, due_date)
+            else:
+                new_task = Task(title, description)
+            task_manager.add_task(new_task)
+            print("Tarea agregada exitosamente!")
+
+        elif choice == "2":
+            print("Tareas pendientes:")
+            pending_tasks = task_manager.get_pending_tasks()
+            for i, task in enumerate(pending_tasks, start=1):
+                print(f"{i}. {task.title}")
+            task_number = int(input("Ingrese el número de la tarea que desea marcar como completada: "))
+            if 1 <= task_number <= len(pending_tasks):
+                pending_tasks[task_number - 1].mark_completed()
+                print("Tarea marcada como completada!")
+            else:
+                print("Número de tarea inválido.")
+
+        elif choice == "3":
+            print("Tareas pendientes:")
+            pending_tasks = task_manager.get_pending_tasks()
+            for i, task in enumerate(pending_tasks, start=1):
+                print(f"{i}. {task.title}")
+
+        elif choice == "4":
+            print("Tareas completadas:")
+            completed_tasks = task_manager.get_completed_tasks()
+            for i, task in enumerate(completed_tasks, start=1):
+                print(f"{i}. {task.title}")
+
+        elif choice == "5":
+            print("Tareas próximas al vencimiento:")
+            due_tasks = task_manager.check_due_tasks()
+            for i, task in enumerate(due_tasks, start=1):
+                print(f"{i}. {task.title} - Fecha de vencimiento: {task.due_date}")
+
+        elif choice == "6":
+            print("¡Hasta luego!")
+            break
+
+        else:
+            print("Opción inválida. Por favor, seleccione una opción válida.")
+
+if __name__ == "__main__":
+    main()
